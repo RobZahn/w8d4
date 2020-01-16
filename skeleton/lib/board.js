@@ -11,7 +11,6 @@ function _makeGrid () {
   // for (let i = 0; i < 8; i++) {
   //   grid.push(new Array(8));
   // }
-  debugger
   grid[3][4] = new Piece('black');
   grid[4][3] = new Piece('black');
   grid[3][3] = new Piece('white');
@@ -40,7 +39,11 @@ Board.DIRS = [
  * Returns the piece at a given [x, y] position,
  * throwing an Error if the position is invalid.
  */
-Board.prototype.getPiece = function (pos) {
+Board.prototype.getPiece = function (pos) { //can we do x,y = pos like we do in ruby? [x][y]
+  const x = pos[0]
+  const y = pos[1]
+  
+  return this.grid[x][y]
 };
 
 /**
@@ -49,30 +52,46 @@ Board.prototype.getPiece = function (pos) {
 Board.prototype.hasMove = function (color) {
 };
 
+
 /**
  * Checks if the piece at a given position
  * matches a given color.
  */
 Board.prototype.isMine = function (pos, color) {
+  // debugger
+  if (this.isOccupied(pos)) {
+    return this.getPiece(pos).color === color;
+  }
 };
 
 /**
  * Checks if a given position has a piece on it.
  */
 Board.prototype.isOccupied = function (pos) {
+  return this.getPiece(pos) !== null;
+  
 };
-
 /**
  * Checks if both the white player and
  * the black player are out of moves.
  */
 Board.prototype.isOver = function () {
+  //use hasmove? on both playrs, how are we going to check both players
+  // do we use this?
+  
 };
 
 /**
  * Checks if a given position is on the Board.
  */
 Board.prototype.isValidPos = function (pos) {
+  let x = pos[0];
+  let y = pos[1];
+  if ((x > 7 || x < 0) || (y > 7 || y < 0)) {
+    return false;
+  } else {
+    return true;
+  }
 };
 
 /**
@@ -88,8 +107,39 @@ Board.prototype.isValidPos = function (pos) {
  *
  * Returns null if no pieces of the opposite color are found.
  */
-function _positionsToFlip (board, pos, color, dir, piecesToFlip) {
-}
+function _positionsToFlip (board, pos, color, dir, piecesToFlip) { 
+    
+    const nextMove = [pos[0] + dir[0], pos[1] + dir[1]]; 
+    if(!board.isValidPos(nextMove)){
+      return null;
+    } else if(!board.isOccupied(nextMove)) {
+      return null;
+    } else if(board.isMine(nextMove, color)) {
+      return piecesToFlip;
+    } else {
+      piecesToFlip.push(nextMove); 
+      return _positionsToFlip(board, nextMove, color, dir, piecesToFlip);
+    }
+  }
+
+// //   isvalidpos = checks whether position is valid
+// //   isOccupied = T/F is it empty?
+// //   isMine = T/F is it the same color as my color?
+// // }     
+// //                                         we want to stop moving to our left until we hit our own color or empty space
+// //                                         as we are moving we want to add the next pos to our piecesToFlip only if its an opp color
+//     0   1    2    3   4     5    6    7       queue = [  [3,5]  ]
+// 0["_", "_", "_", "_", "_", "_", "_", "_"]     
+// 1["_", "_", "_", "_", "_", "_", "_", "_"]
+// 2["_", "_", "_", "_", "_", "_", "_", "_"]     currentpos = [3,5]
+// 3["_", "_", "_", "W", "B", "_", "_", "_"]     moving [0,-1] ==== dir
+// 4["_", "_", "_", "B", "W", "_", "_", "_"]     trying to get to 3,4 and we need to check if its oppCOLOR
+// 5["_", "_", "_", "_", "_", "_", "_", "_"]
+// 6["_", "_", "_", "_", "_", "_", "_", "_"]
+// 7["_", "_", "_", "_", "_", "_", "_", "_"]
+
+
+
 
 /**
  * Adds a new piece of the given color to the given position, flipping the
@@ -105,6 +155,8 @@ Board.prototype.placePiece = function (pos, color) {
  * Prints a string representation of the Board to the console.
  */
 Board.prototype.print = function () {
+  
+  console.log(this.grid)
 };
 
 /**
@@ -112,8 +164,38 @@ Board.prototype.print = function () {
  * taking the position will result in some pieces of the opposite
  * color being flipped.
  */
+
 Board.prototype.validMove = function (pos, color) {
+  // debugger
+  if (this.isOccupied(pos)) {
+    return false;
+  } 
+    for (let i = 0; i < Board.DIRS.length; i++) {
+      if(_positionsToFlip(this, pos, color, Board.DIRS[i],[])) {
+          return true
+      }
+  }
+  return false
+}
+
+Board.prototype.validMove = function (pos, color) {
+  if (this.isOccupied(pos)) {
+    return false;
+  }
+
+  for (let i = 0; i < Board.DIRS.length; i++) {
+    const piecesToFlip =
+      _positionsToFlip(this, pos, color, Board.DIRS[i]); ??where is the array in here?
+    if (piecesToFlip) {
+      return true;
+    }
+  }
+
+  return false;
 };
+
+
+ 
 
 /**
  * Produces an array of all valid positions on

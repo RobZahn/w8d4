@@ -9,7 +9,6 @@ describe("Piece", function () {
       lightPiece;
 
   beforeEach(function () {
-    
     darkPiece = new Piece("black");
     lightPiece = new Piece("white");
   });
